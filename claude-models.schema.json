@@ -1,0 +1,541 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/MelonSmasher/noli-models/main/claude-models.schema.json",
+  "title": "Noli Claude model catalog",
+  "description": "Data-only Claude model facts for Noli: identities, lifecycle, limits, capability facts and pricing. It never carries endpoints, headers, betas, credentials or request shaping. catalog_version is monotonic; Noli ignores a file whose catalog_version is not greater than the one it holds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "catalog_version",
+    "published",
+    "source",
+    "defaults",
+    "models",
+    "pricing_only"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "catalog_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "published": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "main: first-party default main model (API key, most subscriptions); small_fast: helper model (titles); verify: the API-key verification model id (an id or alias); best: family Claude Code calls best; families: family alias defaults; latest_per_family: newest model per family. Every id must resolve to a non-retired model.",
+      "required": [
+        "main",
+        "small_fast",
+        "verify",
+        "best",
+        "families",
+        "latest_per_family"
+      ],
+      "properties": {
+        "main": {
+          "type": "string",
+          "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "maxLength": 128
+        },
+        "small_fast": {
+          "type": "string",
+          "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "maxLength": 128
+        },
+        "verify": {
+          "type": "string",
+          "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+          "maxLength": 128
+        },
+        "best": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]{0,31}$"
+        },
+        "families": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]{0,31}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "maxLength": 128
+          }
+        },
+        "latest_per_family": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]{0,31}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "maxLength": 128
+          }
+        }
+      }
+    },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "display_name",
+          "family",
+          "aliases",
+          "status",
+          "retirement",
+          "replacement",
+          "context_window",
+          "max_context_window",
+          "max_output_tokens",
+          "default_max_tokens",
+          "thinking",
+          "effort",
+          "sampling",
+          "inputs",
+          "structured_outputs",
+          "strict_tools",
+          "context_management",
+          "conversation",
+          "pricing"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "maxLength": 128
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "family": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]{0,31}$"
+          },
+          "aliases": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+              "maxLength": 128
+            },
+            "description": "Other accepted API ids (dated snapshots, short forms). Pricing matches ids and aliases exactly; capability lookup also accepts a trailing -YYYYMMDD and -latest."
+          },
+          "status": {
+            "enum": [
+              "active",
+              "deprecated",
+              "retired"
+            ],
+            "description": "Retired models are never listed; they stay for history and usage accounting."
+          },
+          "retirement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "replacement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context_window": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 10000000
+          },
+          "max_context_window": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1024,
+                "maximum": 10000000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "default_max_tokens": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "description": "Claude Code's default output limit for the model (never above max_output_tokens)."
+          },
+          "thinking": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "supported: extended thinking; adaptive: {type:adaptive}; budget_tokens: {type:enabled,budget_tokens}; disabled: accepts {type:disabled}; interleaved: interleaved thinking; display: accepts thinking.display.",
+            "required": [
+              "supported",
+              "adaptive",
+              "budget_tokens",
+              "disabled",
+              "interleaved",
+              "display"
+            ],
+            "properties": {
+              "supported": {
+                "type": "boolean"
+              },
+              "adaptive": {
+                "type": "boolean"
+              },
+              "budget_tokens": {
+                "type": "boolean"
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "interleaved": {
+                "type": "boolean"
+              },
+              "display": {
+                "type": "boolean"
+              }
+            }
+          },
+          "effort": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Effort levels the model accepts (output_config.effort), ascending; required for adaptive-thinking models.",
+                "required": [
+                  "levels",
+                  "default"
+                ],
+                "properties": {
+                  "levels": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max"
+                      ]
+                    }
+                  },
+                  "default": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "low",
+                          "medium",
+                          "high",
+                          "xhigh",
+                          "max"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sampling": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "temperature",
+              "top_p"
+            ],
+            "properties": {
+              "temperature": {
+                "type": "boolean"
+              },
+              "top_p": {
+                "type": "boolean"
+              }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "image",
+              "file"
+            ],
+            "properties": {
+              "image": {
+                "type": "boolean"
+              },
+              "file": {
+                "type": "boolean"
+              }
+            }
+          },
+          "structured_outputs": {
+            "type": "boolean"
+          },
+          "strict_tools": {
+            "type": "boolean"
+          },
+          "context_management": {
+            "type": "boolean"
+          },
+          "conversation": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Mid-conversation control capabilities (tool set, effort, per-turn control, system clear-at).",
+            "required": [
+              "tool_changes",
+              "effort_changes",
+              "per_turn_control",
+              "system_clear_at"
+            ],
+            "properties": {
+              "tool_changes": {
+                "type": "boolean"
+              },
+              "effort_changes": {
+                "type": "boolean"
+              },
+              "per_turn_control": {
+                "type": "boolean"
+              },
+              "system_clear_at": {
+                "type": "boolean"
+              }
+            }
+          },
+          "pricing": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Standard API rates in USD per million tokens (web_search per search). long_context null means verified flat pricing.",
+            "required": [
+              "input",
+              "output",
+              "cache_read",
+              "cache_write_5m",
+              "cache_write_1h",
+              "web_search",
+              "long_context"
+            ],
+            "properties": {
+              "input": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "output": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "cache_read": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "cache_write_5m": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "cache_write_1h": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "web_search": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "long_context": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "Rates (USD per million tokens) for a request whose total input exceeds above_input_tokens.",
+                    "required": [
+                      "above_input_tokens",
+                      "input",
+                      "output",
+                      "cache_read",
+                      "cache_write_5m",
+                      "cache_write_1h"
+                    ],
+                    "properties": {
+                      "above_input_tokens": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000000
+                      },
+                      "input": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "output": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "cache_read": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "cache_write_5m": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "cache_write_1h": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "pricing_only": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Identities kept only for usage accounting: verified long-context status, rates from the pricing feed. Never listed.",
+        "required": [
+          "id",
+          "status",
+          "long_context"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$",
+            "maxLength": 128
+          },
+          "status": {
+            "enum": [
+              "active",
+              "deprecated",
+              "retired"
+            ]
+          },
+          "long_context": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Rates (USD per million tokens) for a request whose total input exceeds above_input_tokens.",
+                "required": [
+                  "above_input_tokens",
+                  "input",
+                  "output",
+                  "cache_read",
+                  "cache_write_5m",
+                  "cache_write_1h"
+                ],
+                "properties": {
+                  "above_input_tokens": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000000
+                  },
+                  "input": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "output": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "cache_read": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "cache_write_5m": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "cache_write_1h": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
